@@ -2,34 +2,30 @@
 #define STACK_H
 
 #include <iostream>
+#include <memory>
 
 template <typename T>
 class Stack {
 private:
     struct Node {
         T data;
-        Node* next;
-        Node(T val, Node* ptr = nullptr) : data(val), next(ptr) {}
+        std::unique_ptr<Node> next;
+        Node(T val) : data(val), next(nullptr) {}
     };
-    Node* topNode;
+    std::unique_ptr<Node> topNode;
 
 public:
-    Stack() : topNode(nullptr) {}
-    ~Stack() {
-        while (!isEmpty()) {
-            pop();
-        }
-    }
+    Stack() = default;
 
     void push(T value) {
-        topNode = new Node(value, topNode);
+        auto newNode = std::make_unique<Node>(value); 
+        newNode->next = std::move(topNode);  
+        topNode = std::move(newNode); 
     }
 
     void pop() {
         if (!isEmpty()) {
-            Node* temp = topNode;
-            topNode = topNode->next;
-            delete temp;
+            topNode = std::move(topNode->next)
         }
     }
 
@@ -45,10 +41,10 @@ public:
     }
 
     void print() const {
-        Node* temp = topNode;
+        Node* temp = topNode.get();
         while (temp) {
             std::cout << temp->data << " ";
-            temp = temp->next;
+            temp = temp->next.get();
         }
         std::cout << std::endl;
     }
